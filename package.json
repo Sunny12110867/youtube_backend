@@ -1,0 +1,14 @@
+{
+  "name": "youtube-backend",
+  "version": "1.0.0",
+  "description": "this is a youtube backend project using nodejs ,express js with database",
+  "main": "index.js",
+  "scripts": {
+   "dev": "nodemon src/index.js"
+  },
+  "author": "sunny bhardwaj",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
