@@ -16,9 +16,10 @@
 // second way of doing this is 
 
 const asyncHandler = (funHandler) => {
-    (req,res,next)=>{
+   return (req,res,next)=>{
         Promise.resolve(funHandler(req,res,next))
         .catch((err) => next(err))
     }
 }
-export default asyncHandler
+export {asyncHandler}
+
