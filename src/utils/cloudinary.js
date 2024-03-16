@@ -16,8 +16,9 @@ const uploadOnCloudinary = async (localfilepath) => {
        const response = await cloudinary.uploader.upload(localfilepath,{
             resource_type: "auto"                         // auto means if file is pdf images or anythink it will auto dectact
         })
-        console.log('file uploading is succesfuly',response.url)
-        return response.url
+        // console.log('file uploading is succesfuly',response.url)
+        fs.unlinkSync(localfilepath)
+        return response
     }catch(error){
         fs.unlinkSync(localfilepath)
         return null

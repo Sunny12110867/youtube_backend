@@ -1,5 +1,5 @@
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {apiError} from '../utils/ApiError.js'
+import {ApiError as apiError} from '../utils/ApiError.js'
 import { User } from "../models/user.models.js"
 import {uploadOnCloudinary} from '../utils/cloudinary.js'
 import { ApiResponse } from "../utils/ApiResponse.js"
@@ -8,15 +8,15 @@ import { ApiResponse } from "../utils/ApiResponse.js"
     // get user detailed from forntend
     // validation - not empty
     // check if user already exist: username,email
-    // check for images,check for avtar
-    // upload them to cloudinary, avtar
+    // check for images,check for avatar
+    // upload them to cloudinary, avatar
     // create user object - create entry in db
     // remove password and referesh token field from reponse
     // check for user creation
     // retunr response
 
     const {fullName, email,username,password} = req.body
-    console.log(email)
+    
 
     if( [fullName,email,username,password].some((field)=>{
          field?.trim() === "" 
@@ -24,7 +24,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
          throw new apiError(404,"you need to fill all record")
       }
     
-      const userExist = User.findOne({
+      const userExist = await User.findOne({
          $or: [{username}, {email}]
       })
 
@@ -32,41 +32,52 @@ import { ApiResponse } from "../utils/ApiResponse.js"
          throw new apiError(409,'user already exist')
       }
 
-      const avtarLocalPath = req.field?.avtar[0]?.path
-      const coverImagePath = req.field?.coverImage[0]?.path
+  
+      const avatarLocalPath = req.files?.avatar[0]?.path;
+      // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
-      if(!avtarLocalPath){
-         throw new apiError(409,"no avtar image is found!")
+      
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+
+      if(!avatarLocalPath){
+         throw new apiError(409,"no avatar image is found!")
       }
 
-    
-       const avtar =await uploadOnCloudinary(avtarLocalPath)
-       const coverImage = await uploadOnCloudinary(coverImagePath)
-       
-       if(!avtar){
-         throw new apiError(400,'error while registerUser')
-       }
-     
-       User.create({
-         fullName,
-         avtar: avtar?.url,
-         coverImage: coverImage?.url || "",
-         email,
-         password,
-         username: username.ToLowerCase()
-       })
+      console.log(req.files)
+       const avatar =await uploadOnCloudinary(avatarLocalPath)
+       const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+      //  console.log("it is first|\n")
+       if (!avatar) {
+        
+        throw new apiError(400, "Avatar file is required")
+    }
+   
+    // console.log(avatar , "it is second|\n")
 
-       const createdUser = await User.findById(User._id).select(
-         "-password -refreshToken"
-       )
-
-       if(!createdUser){
-         throw new apiError(404,'error while calling registerUser')
-       }
-
-       return res.status(200).json(
-         new ApiResponse(200,createdUser,"user register sucessufuly")
-       )
+    const user = await User.create({
+        fullName,
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
+        email, 
+        password,
+        username: username.toLowerCase()
+    })
+    // console.log("it is third|\n")
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+    // console.log("it is fourth|\n")
+    if (!createdUser) {
+      console.log("it is seocnd means usercreated")
+        throw new apiError(500, "Something went wrong while registering the user")
+    }
+    // console.log("it is sexth|\n")
+    return res.status(201).json(
+        new ApiResponse(200, createdUser, "User registered Successfully")
+    )
  })
 
 
