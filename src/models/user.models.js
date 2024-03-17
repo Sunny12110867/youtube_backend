@@ -46,9 +46,9 @@ const userSchema = new mongoose.Schema({
 },{timestamps: true})
 
 
-userSchema.pre("save",async function (next){
-    if(!this.isModified("password"))return next();
-
+userSchema.pre("save",async function (next){         // this code will check if password change then it will 
+    if(!this.isModified("password"))return next();   // bcrypt the new password other wise return next() which is like
+                                                     //  a pointer to the next middleware                                         
     this.password = await bcrypt.hash(this.password, 10);
     next()
 })
@@ -69,6 +69,7 @@ userSchema.methods.generateAccessToken = function(){
     }
     )
 }
+
 userSchema.methods.generateRefreshToken = function(){
     return jwt.sign({
         _id: this._id,
@@ -81,3 +82,9 @@ userSchema.methods.generateRefreshToken = function(){
 }
 
 export const User = mongoose.model("User",userSchema)
+
+
+
+// In summary, this code sets up a user model schema in Mongoose, defines middleware
+// to hash passwords before saving, and provides methods to generate JWT-based access 
+// and refresh tokens for user authentication and authorization.
